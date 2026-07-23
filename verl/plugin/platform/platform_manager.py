@@ -127,7 +127,18 @@ def _create_platform(name: str) -> PlatformBase:
             "Use @PlatformRegistry.register() to add a new platform."
         )
     platform = platform_cls()
-    if not platform.is_available():
+    try:
+        available = platform.is_available()
+    except Exception as e:
+        logger.warning(
+            "Platform '%s' (%s) availability check raised an exception: %s. "
+            "Treating as unavailable. This may be due to this ray actor being a CPU-only actor.",
+            name,
+            platform_cls.__name__,
+            e,
+        )
+        available = False
+    if not available:
         logger.warning(
             "Platform '%s' (%s) is registered but not available. "
             "This may be due to this ray actor being a CPU-only actor.",
